@@ -635,8 +635,11 @@ CIRRecordLowering::accumulateBitFields(RecordDecl::field_iterator field,
           // with storage (which might be field itself) or the end of the
           // non-reusable tail padding.
           CharUnits limitOffset;
+          // CIR retains empty fields with nonzero size, so they also bound
+          // the access unit.
           for (auto probe = field; probe != fieldEnd; ++probe)
-            if (!CodeGenUtils::isEmptyFieldForLayout(astContext, *probe)) {
+            if (!CodeGenUtils::isEmptyFieldForLayout(astContext, *probe) ||
+                !probe->isZeroSize(astContext)) {
               // A member with storage sets the limit.
               assert((getFieldBitOffset(*probe) % charBits) == 0 &&
                      "Next storage is not byte-aligned");

@@ -217,6 +217,46 @@ struct DerivedClipped : Clipped { char c; };
 // LLVM-DAG: %struct.Clipped.base = type <{ i32, [3 x i8] }>
 // LLVM-DAG: %struct.DerivedClipped = type { %struct.Clipped.base, i8 }
 
+// An ordinary empty member still occupies a byte. Bit-field storage must
+// stop before it rather than round up into that byte (GH235744).
+struct BitsBeforeEmpty {
+  unsigned a : 16;
+  unsigned b : 8;
+  Empty e;
+};
+static_assert(sizeof(BitsBeforeEmpty) == 4);
+static_assert(__builtin_offsetof(BitsBeforeEmpty, e) == 3);
+// CIR-DAG: !rec_BitsBeforeEmpty = !cir.struct<"BitsBeforeEmpty" {bitfield !cir.bitfield<!u16i, [#cir.bitfield_decl<!u32i, 16>]>, bitfield !cir.bitfield<!u8i, [#cir.bitfield_decl<!u32i, 8>]>, data !rec_Empty}>
+// LLVMCIR-DAG: %struct.BitsBeforeEmpty = type { i16, i8, %struct.Empty }
+// OGCG-DAG: %struct.BitsBeforeEmpty = type { i32 }
+BitsBeforeEmpty gBitsBeforeEmpty;
+
+// A genuinely zero-sized member can overlap the bit-field storage.
+struct BitsBeforeNuaEmpty {
+  unsigned a : 16;
+  unsigned b : 8;
+  [[no_unique_address]] Empty e;
+};
+static_assert(sizeof(BitsBeforeNuaEmpty) == 4);
+static_assert(__builtin_offsetof(BitsBeforeNuaEmpty, e) == 0);
+// CIR-DAG: !rec_BitsBeforeNuaEmpty = !cir.struct<"BitsBeforeNuaEmpty" {bitfield !cir.bitfield<!u32i, [#cir.bitfield_decl<!u32i, 16>, #cir.bitfield_decl<!u32i, 8>]>}>
+// LLVM-DAG: %struct.BitsBeforeNuaEmpty = type { i32 }
+BitsBeforeNuaEmpty gBitsBeforeNuaEmpty;
+
+// [[no_unique_address]] does not make a field zero-sized when its type has
+// an ordinary empty member of its own. It must also bound bit-field storage.
+struct BitsBeforeNuaData {
+  unsigned a : 16;
+  unsigned b : 8;
+  [[no_unique_address]] EmptyForLayoutOnly e;
+};
+static_assert(sizeof(BitsBeforeNuaData) == 4);
+static_assert(__builtin_offsetof(BitsBeforeNuaData, e) == 3);
+// CIR-DAG: !rec_BitsBeforeNuaData = !cir.struct<"BitsBeforeNuaData" {bitfield !cir.bitfield<!u16i, [#cir.bitfield_decl<!u32i, 16>]>, bitfield !cir.bitfield<!u8i, [#cir.bitfield_decl<!u32i, 8>]>, data !rec_EmptyForLayoutOnly}>
+// LLVMCIR-DAG: %struct.BitsBeforeNuaData = type { i16, i8, %struct.EmptyForLayoutOnly }
+// OGCG-DAG: %struct.BitsBeforeNuaData = type { i32 }
+BitsBeforeNuaData gBitsBeforeNuaData;
+
 // Name every record so that its CIR type reaches the output.
 void useTypes(HoldsEmpty *, NuaEmpty *, NuaEmptyUnion *, NuaPolyUnion *,
               NuaDerivedUnion *, NuaDerivesNonEmptyUnion *, BitFieldBase *,
