@@ -27848,6 +27848,10 @@ static SDValue vectorToScalarBitmask(SDValue ComparisonResult,
 
   // All other vector sizes.
   unsigned NumEl = VecVT.getVectorNumElements();
+  // Each element must be wide enough to hold a mask bit for every lane.
+  if (VecVT.getScalarSizeInBits() < NumEl)
+    return SDValue();
+
   for (unsigned I = 0; I < NumEl; ++I) {
     unsigned MaskBit = IsLE ? (1u << I) : (1u << (NumEl - 1 - I));
     MaskConstants.push_back(DAG.getConstant(MaskBit, DL, MVT::i64));

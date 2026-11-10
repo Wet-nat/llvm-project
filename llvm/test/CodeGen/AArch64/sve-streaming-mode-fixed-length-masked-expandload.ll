@@ -451,18 +451,66 @@ define <16 x i8> @masked_load_v16i8(ptr %src, <16 x i1> %mask) {
 ; CHECK-LABEL: masked_load_v16i8:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    // kill: def $q0 killed $q0 def $z0
-; CHECK-NEXT:    adrp x8, .LCPI2_0
-; CHECK-NEXT:    ptrue p0.b, vl16
-; CHECK-NEXT:    lsl z0.b, z0.b, #7
-; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI2_0]
-; CHECK-NEXT:    asr z0.b, z0.b, #7
-; CHECK-NEXT:    and z0.d, z0.d, z1.d
-; CHECK-NEXT:    uaddv d0, p0, z0.b
+; CHECK-NEXT:    mov z2.b, z0.b[1]
+; CHECK-NEXT:    mov z3.b, z0.b[2]
 ; CHECK-NEXT:    fmov w8, s0
-; CHECK-NEXT:    tbz w8, #0, .LBB2_2
+; CHECK-NEXT:    mov z7.b, z0.b[7]
+; CHECK-NEXT:    mov z16.b, z0.b[8]
+; CHECK-NEXT:    mov z4.b, z0.b[3]
+; CHECK-NEXT:    mov z17.b, z0.b[9]
+; CHECK-NEXT:    mov z18.b, z0.b[10]
+; CHECK-NEXT:    mov z5.b, z0.b[4]
+; CHECK-NEXT:    and w8, w8, #0x1
+; CHECK-NEXT:    fmov w9, s2
+; CHECK-NEXT:    fmov w10, s3
+; CHECK-NEXT:    mov z19.b, z0.b[11]
+; CHECK-NEXT:    fmov w13, s7
+; CHECK-NEXT:    fmov w14, s16
+; CHECK-NEXT:    fmov w11, s4
+; CHECK-NEXT:    fmov w15, s17
+; CHECK-NEXT:    mov z6.b, z0.b[5]
+; CHECK-NEXT:    bfi w8, w9, #1, #1
+; CHECK-NEXT:    mov z20.b, z0.b[12]
+; CHECK-NEXT:    fmov w16, s18
+; CHECK-NEXT:    ubfiz w13, w13, #7, #1
+; CHECK-NEXT:    ubfiz w14, w14, #8, #1
+; CHECK-NEXT:    mov z21.b, z0.b[13]
+; CHECK-NEXT:    bfi w8, w10, #2, #1
+; CHECK-NEXT:    fmov w12, s5
+; CHECK-NEXT:    fmov w10, s19
+; CHECK-NEXT:    orr w13, w13, w14
+; CHECK-NEXT:    ubfiz w14, w16, #10, #1
+; CHECK-NEXT:    mov z22.b, z0.b[14]
+; CHECK-NEXT:    bfi w8, w11, #3, #1
+; CHECK-NEXT:    ubfiz w11, w15, #9, #1
+; CHECK-NEXT:    mov z1.b, z0.b[6]
+; CHECK-NEXT:    ubfiz w10, w10, #11, #1
+; CHECK-NEXT:    fmov w9, s6
+; CHECK-NEXT:    fmov w17, s20
+; CHECK-NEXT:    bfi w8, w12, #4, #1
+; CHECK-NEXT:    orr w11, w13, w11
+; CHECK-NEXT:    fmov w15, s21
+; CHECK-NEXT:    fmov w12, s22
+; CHECK-NEXT:    orr w11, w11, w14
+; CHECK-NEXT:    mov z23.b, z0.b[15]
+; CHECK-NEXT:    ubfiz w13, w17, #12, #1
+; CHECK-NEXT:    bfi w8, w9, #5, #1
+; CHECK-NEXT:    orr w9, w11, w10
+; CHECK-NEXT:    fmov w11, s1
+; CHECK-NEXT:    ubfiz w10, w15, #13, #1
+; CHECK-NEXT:    orr w9, w9, w13
+; CHECK-NEXT:    ubfiz w12, w12, #14, #1
+; CHECK-NEXT:    orr w9, w9, w10
+; CHECK-NEXT:    bfi w8, w11, #6, #1
+; CHECK-NEXT:    orr w9, w9, w12
+; CHECK-NEXT:    orr w8, w8, w9
+; CHECK-NEXT:    fmov w9, s23
+; CHECK-NEXT:    orr w9, w8, w9, lsl #15
+; CHECK-NEXT:    and w8, w9, #0xffff
+; CHECK-NEXT:    tbz w9, #0, .LBB2_2
 ; CHECK-NEXT:  // %bb.1: // %cond.load
-; CHECK-NEXT:    sub sp, sp, #16
-; CHECK-NEXT:    .cfi_def_cfa_offset 16
+; CHECK-NEXT:    sub sp, sp, #32
+; CHECK-NEXT:    .cfi_def_cfa_offset 32
 ; CHECK-NEXT:    ldrb w9, [x0], #1
 ; CHECK-NEXT:    strh wzr, [sp, #14]
 ; CHECK-NEXT:    strh wzr, [sp, #12]
@@ -473,7 +521,7 @@ define <16 x i8> @masked_load_v16i8(ptr %src, <16 x i1> %mask) {
 ; CHECK-NEXT:    strh wzr, [sp, #2]
 ; CHECK-NEXT:    strb wzr, [sp, #1]
 ; CHECK-NEXT:    strb w9, [sp]
-; CHECK-NEXT:    ldr q0, [sp], #16
+; CHECK-NEXT:    ldr q0, [sp], #32
 ; CHECK-NEXT:    tbnz w8, #1, .LBB2_3
 ; CHECK-NEXT:    b .LBB2_4
 ; CHECK-NEXT:  .LBB2_2:
@@ -649,41 +697,53 @@ define <16 x i8> @masked_load_v16i8(ptr %src, <16 x i1> %mask) {
 ; NONEON-NOSVE-LABEL: masked_load_v16i8:
 ; NONEON-NOSVE:       // %bb.0:
 ; NONEON-NOSVE-NEXT:    str x29, [sp, #-16]! // 8-byte Folded Spill
-; NONEON-NOSVE-NEXT:    sub sp, sp, #992
-; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 1008
+; NONEON-NOSVE-NEXT:    sub sp, sp, #1008
+; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 1024
 ; NONEON-NOSVE-NEXT:    .cfi_offset w29, -16
 ; NONEON-NOSVE-NEXT:    str q0, [sp, #976]
-; NONEON-NOSVE-NEXT:    ldrb w8, [sp, #978]
-; NONEON-NOSVE-NEXT:    ldrb w9, [sp, #979]
-; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #977]
-; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #980]
-; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #981]
-; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #982]
-; NONEON-NOSVE-NEXT:    sbfx w8, w8, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w9, w9, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w10, w10, #0, #1
-; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #976]
-; NONEON-NOSVE-NEXT:    sbfx w12, w12, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w13, w13, #0, #1
-; NONEON-NOSVE-NEXT:    and w8, w8, #0x4
-; NONEON-NOSVE-NEXT:    and w9, w9, #0x8
-; NONEON-NOSVE-NEXT:    sbfx w14, w14, #0, #1
-; NONEON-NOSVE-NEXT:    orr w8, w8, w9
-; NONEON-NOSVE-NEXT:    ldrb w9, [sp, #983]
-; NONEON-NOSVE-NEXT:    and w10, w10, #0x2
-; NONEON-NOSVE-NEXT:    and w12, w12, #0x10
-; NONEON-NOSVE-NEXT:    bfxil w10, w11, #0, #1
-; NONEON-NOSVE-NEXT:    and w11, w13, #0x20
-; NONEON-NOSVE-NEXT:    orr w8, w8, w12
-; NONEON-NOSVE-NEXT:    and w12, w14, #0x40
-; NONEON-NOSVE-NEXT:    sbfx w9, w9, #0, #1
-; NONEON-NOSVE-NEXT:    orr w8, w10, w8
-; NONEON-NOSVE-NEXT:    orr w10, w11, w12
-; NONEON-NOSVE-NEXT:    orr w8, w8, w10
-; NONEON-NOSVE-NEXT:    and w9, w9, #0xffffff80
-; NONEON-NOSVE-NEXT:    add w8, w8, w9
 ; NONEON-NOSVE-NEXT:    add x9, sp, #720
-; NONEON-NOSVE-NEXT:    tbz w8, #0, .LBB2_2
+; NONEON-NOSVE-NEXT:    ldrb w8, [sp, #976]
+; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #977]
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #978]
+; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #983]
+; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #984]
+; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #985]
+; NONEON-NOSVE-NEXT:    and w8, w8, #0x1
+; NONEON-NOSVE-NEXT:    bfi w8, w10, #1, #1
+; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #979]
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #7, #1
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #8, #1
+; NONEON-NOSVE-NEXT:    ubfiz w14, w14, #9, #1
+; NONEON-NOSVE-NEXT:    bfi w8, w11, #2, #1
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #986]
+; NONEON-NOSVE-NEXT:    orr w12, w12, w13
+; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #980]
+; NONEON-NOSVE-NEXT:    bfi w8, w10, #3, #1
+; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #987]
+; NONEON-NOSVE-NEXT:    ubfiz w11, w11, #10, #1
+; NONEON-NOSVE-NEXT:    orr w12, w12, w14
+; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #981]
+; NONEON-NOSVE-NEXT:    bfi w8, w13, #4, #1
+; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #988]
+; NONEON-NOSVE-NEXT:    orr w11, w12, w11
+; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #989]
+; NONEON-NOSVE-NEXT:    ubfiz w10, w10, #11, #1
+; NONEON-NOSVE-NEXT:    bfi w8, w14, #5, #1
+; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #990]
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #12, #1
+; NONEON-NOSVE-NEXT:    orr w10, w11, w10
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #982]
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #13, #1
+; NONEON-NOSVE-NEXT:    orr w10, w10, w13
+; NONEON-NOSVE-NEXT:    ubfiz w13, w14, #14, #1
+; NONEON-NOSVE-NEXT:    bfi w8, w11, #6, #1
+; NONEON-NOSVE-NEXT:    orr w10, w10, w12
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #991]
+; NONEON-NOSVE-NEXT:    orr w10, w10, w13
+; NONEON-NOSVE-NEXT:    orr w8, w8, w10
+; NONEON-NOSVE-NEXT:    orr w10, w8, w11, lsl #15
+; NONEON-NOSVE-NEXT:    and w8, w10, #0xffff
+; NONEON-NOSVE-NEXT:    tbz w10, #0, .LBB2_2
 ; NONEON-NOSVE-NEXT:  // %bb.1: // %cond.load
 ; NONEON-NOSVE-NEXT:    ldrb w10, [x0], #1
 ; NONEON-NOSVE-NEXT:    strb wzr, [sp, #975]
@@ -763,7 +823,7 @@ define <16 x i8> @masked_load_v16i8(ptr %src, <16 x i1> %mask) {
 ; NONEON-NOSVE-NEXT:    strb w8, [sp, #47]
 ; NONEON-NOSVE-NEXT:    ldr q0, [sp, #32]
 ; NONEON-NOSVE-NEXT:  .LBB2_19: // %else58
-; NONEON-NOSVE-NEXT:    add sp, sp, #992
+; NONEON-NOSVE-NEXT:    add sp, sp, #1008
 ; NONEON-NOSVE-NEXT:    ldr x29, [sp], #16 // 8-byte Folded Reload
 ; NONEON-NOSVE-NEXT:    ret
 ; NONEON-NOSVE-NEXT:  .LBB2_20: // %cond.load5
@@ -1010,82 +1070,85 @@ define <16 x i8> @masked_load_v16i8(ptr %src, <16 x i1> %mask) {
 define <32 x i8> @masked_load_v32i8(ptr %src, <32 x i1> %mask) {
 ; CHECK-LABEL: masked_load_v32i8:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    sub sp, sp, #48
-; CHECK-NEXT:    .cfi_def_cfa_offset 48
-; CHECK-NEXT:    ldr w8, [sp, #240]
-; CHECK-NEXT:    ldr w9, [sp, #232]
-; CHECK-NEXT:    ptrue p0.b, vl16
-; CHECK-NEXT:    strb w7, [sp, #22]
-; CHECK-NEXT:    strb w8, [sp, #47]
-; CHECK-NEXT:    ldr w8, [sp, #224]
-; CHECK-NEXT:    strb w9, [sp, #46]
-; CHECK-NEXT:    ldr w9, [sp, #216]
-; CHECK-NEXT:    strb w8, [sp, #45]
-; CHECK-NEXT:    ldr w8, [sp, #208]
-; CHECK-NEXT:    strb w9, [sp, #44]
-; CHECK-NEXT:    ldr w9, [sp, #200]
-; CHECK-NEXT:    strb w8, [sp, #43]
-; CHECK-NEXT:    ldr w8, [sp, #192]
-; CHECK-NEXT:    strb w9, [sp, #42]
-; CHECK-NEXT:    ldr w9, [sp, #184]
-; CHECK-NEXT:    strb w8, [sp, #41]
-; CHECK-NEXT:    ldr w8, [sp, #176]
-; CHECK-NEXT:    strb w9, [sp, #40]
-; CHECK-NEXT:    ldr w9, [sp, #168]
-; CHECK-NEXT:    strb w8, [sp, #39]
-; CHECK-NEXT:    ldr w8, [sp, #160]
-; CHECK-NEXT:    strb w9, [sp, #38]
-; CHECK-NEXT:    ldr w9, [sp, #152]
-; CHECK-NEXT:    strb w8, [sp, #37]
-; CHECK-NEXT:    ldr w8, [sp, #144]
-; CHECK-NEXT:    strb w9, [sp, #36]
-; CHECK-NEXT:    ldr w9, [sp, #136]
-; CHECK-NEXT:    strb w8, [sp, #35]
-; CHECK-NEXT:    ldr w8, [sp, #128]
-; CHECK-NEXT:    strb w9, [sp, #34]
-; CHECK-NEXT:    ldr w9, [sp, #120]
-; CHECK-NEXT:    strb w8, [sp, #33]
-; CHECK-NEXT:    ldr w8, [sp, #112]
-; CHECK-NEXT:    strb w9, [sp, #32]
-; CHECK-NEXT:    ldr w9, [sp, #104]
-; CHECK-NEXT:    strb w8, [sp, #31]
-; CHECK-NEXT:    ldr w8, [sp, #96]
-; CHECK-NEXT:    strb w9, [sp, #30]
-; CHECK-NEXT:    ldr w9, [sp, #88]
-; CHECK-NEXT:    strb w8, [sp, #29]
-; CHECK-NEXT:    ldr w8, [sp, #80]
-; CHECK-NEXT:    strb w9, [sp, #28]
-; CHECK-NEXT:    ldr w9, [sp, #72]
-; CHECK-NEXT:    strb w8, [sp, #27]
-; CHECK-NEXT:    ldr w8, [sp, #64]
-; CHECK-NEXT:    strb w9, [sp, #26]
-; CHECK-NEXT:    ldr w9, [sp, #56]
-; CHECK-NEXT:    strb w8, [sp, #25]
-; CHECK-NEXT:    ldr w8, [sp, #48]
-; CHECK-NEXT:    strb w9, [sp, #24]
-; CHECK-NEXT:    strb w8, [sp, #23]
-; CHECK-NEXT:    adrp x8, .LCPI3_0
-; CHECK-NEXT:    strb w6, [sp, #21]
-; CHECK-NEXT:    ldr q2, [x8, :lo12:.LCPI3_0]
-; CHECK-NEXT:    strb w5, [sp, #20]
-; CHECK-NEXT:    strb w4, [sp, #19]
-; CHECK-NEXT:    strb w3, [sp, #18]
-; CHECK-NEXT:    strb w2, [sp, #17]
-; CHECK-NEXT:    strb w1, [sp, #16]
-; CHECK-NEXT:    ldp q1, q0, [sp, #16]
-; CHECK-NEXT:    lsl z0.b, z0.b, #7
-; CHECK-NEXT:    lsl z1.b, z1.b, #7
-; CHECK-NEXT:    asr z0.b, z0.b, #7
-; CHECK-NEXT:    asr z1.b, z1.b, #7
-; CHECK-NEXT:    and z0.d, z0.d, z2.d
-; CHECK-NEXT:    and z1.d, z1.d, z2.d
-; CHECK-NEXT:    uaddv d0, p0, z0.b
-; CHECK-NEXT:    uaddv d1, p0, z1.b
-; CHECK-NEXT:    fmov w9, s0
-; CHECK-NEXT:    mov z0.b, #0 // =0x0
-; CHECK-NEXT:    fmov w8, s1
+; CHECK-NEXT:    sub sp, sp, #32
+; CHECK-NEXT:    .cfi_def_cfa_offset 32
+; CHECK-NEXT:    ldr w9, [sp, #32]
+; CHECK-NEXT:    ldr w10, [sp, #40]
+; CHECK-NEXT:    and w8, w1, #0x1
+; CHECK-NEXT:    ldr w11, [sp, #48]
+; CHECK-NEXT:    ldr w12, [sp, #56]
+; CHECK-NEXT:    bfi w8, w2, #1, #1
+; CHECK-NEXT:    ubfiz w9, w9, #7, #1
+; CHECK-NEXT:    ubfiz w10, w10, #8, #1
+; CHECK-NEXT:    ldr w14, [sp, #112]
+; CHECK-NEXT:    ubfiz w11, w11, #9, #1
+; CHECK-NEXT:    ldr w13, [sp, #72]
+; CHECK-NEXT:    ldr w15, [sp, #80]
+; CHECK-NEXT:    orr w9, w9, w10
+; CHECK-NEXT:    ubfiz w10, w12, #10, #1
+; CHECK-NEXT:    ldr w12, [sp, #104]
+; CHECK-NEXT:    orr w9, w9, w11
+; CHECK-NEXT:    ldr w11, [sp, #64]
+; CHECK-NEXT:    ubfiz w13, w13, #12, #1
+; CHECK-NEXT:    orr w10, w9, w10
+; CHECK-NEXT:    and w9, w12, #0x1
+; CHECK-NEXT:    ldr w12, [sp, #120]
+; CHECK-NEXT:    ubfiz w11, w11, #11, #1
+; CHECK-NEXT:    bfi w9, w14, #1, #1
+; CHECK-NEXT:    ubfiz w14, w15, #13, #1
+; CHECK-NEXT:    bfi w8, w3, #2, #1
+; CHECK-NEXT:    ldr w15, [sp, #176]
+; CHECK-NEXT:    ldr w16, [sp, #184]
+; CHECK-NEXT:    orr w10, w10, w11
+; CHECK-NEXT:    bfi w9, w12, #2, #1
+; CHECK-NEXT:    ldr w11, [sp, #128]
+; CHECK-NEXT:    orr w10, w10, w13
+; CHECK-NEXT:    ldr w13, [sp, #160]
+; CHECK-NEXT:    bfi w8, w4, #3, #1
+; CHECK-NEXT:    bfi w9, w11, #3, #1
+; CHECK-NEXT:    ldr w11, [sp, #136]
+; CHECK-NEXT:    orr w10, w10, w14
+; CHECK-NEXT:    ldr w14, [sp, #168]
+; CHECK-NEXT:    ubfiz w13, w13, #7, #1
+; CHECK-NEXT:    bfi w8, w5, #4, #1
+; CHECK-NEXT:    bfi w9, w11, #4, #1
+; CHECK-NEXT:    ldr w11, [sp, #144]
+; CHECK-NEXT:    ldr w12, [sp, #88]
+; CHECK-NEXT:    ubfiz w14, w14, #8, #1
+; CHECK-NEXT:    bfi w8, w6, #5, #1
 ; CHECK-NEXT:    mov z1.b, #0 // =0x0
-; CHECK-NEXT:    bfi w8, w9, #16, #16
+; CHECK-NEXT:    bfi w9, w11, #5, #1
+; CHECK-NEXT:    ubfiz w11, w15, #9, #1
+; CHECK-NEXT:    ldr w15, [sp, #192]
+; CHECK-NEXT:    orr w13, w13, w14
+; CHECK-NEXT:    ubfiz w14, w16, #10, #1
+; CHECK-NEXT:    ldr w16, [sp, #200]
+; CHECK-NEXT:    orr w11, w13, w11
+; CHECK-NEXT:    ubfiz w13, w15, #11, #1
+; CHECK-NEXT:    ldr w15, [sp, #208]
+; CHECK-NEXT:    orr w11, w11, w14
+; CHECK-NEXT:    ubfiz w14, w16, #12, #1
+; CHECK-NEXT:    ldr w16, [sp, #216]
+; CHECK-NEXT:    orr w11, w11, w13
+; CHECK-NEXT:    ldr w13, [sp, #152]
+; CHECK-NEXT:    ubfiz w15, w15, #13, #1
+; CHECK-NEXT:    ubfiz w12, w12, #14, #1
+; CHECK-NEXT:    orr w11, w11, w14
+; CHECK-NEXT:    ubfiz w14, w16, #14, #1
+; CHECK-NEXT:    ldr w16, [sp, #224]
+; CHECK-NEXT:    bfi w8, w7, #6, #1
+; CHECK-NEXT:    bfi w9, w13, #6, #1
+; CHECK-NEXT:    orr w11, w11, w15
+; CHECK-NEXT:    orr w10, w10, w12
+; CHECK-NEXT:    ldr w12, [sp, #96]
+; CHECK-NEXT:    orr w11, w11, w14
+; CHECK-NEXT:    lsl w13, w16, #31
+; CHECK-NEXT:    orr w8, w8, w10
+; CHECK-NEXT:    orr w9, w9, w11
+; CHECK-NEXT:    orr w10, w8, w12, lsl #15
+; CHECK-NEXT:    mov z0.b, #0 // =0x0
+; CHECK-NEXT:    orr w8, w13, w9, lsl #16
+; CHECK-NEXT:    bfxil w8, w10, #0, #16
 ; CHECK-NEXT:    tbz w8, #0, .LBB3_32
 ; CHECK-NEXT:  // %bb.1: // %cond.load
 ; CHECK-NEXT:    ldrb w9, [x0], #1
@@ -1441,70 +1504,93 @@ define <32 x i8> @masked_load_v32i8(ptr %src, <32 x i1> %mask) {
 ; CHECK-NEXT:  .LBB3_64: // %else122
 ; CHECK-NEXT:    // kill: def $q0 killed $q0 killed $z0
 ; CHECK-NEXT:    // kill: def $q1 killed $q1 killed $z1
-; CHECK-NEXT:    add sp, sp, #48
+; CHECK-NEXT:    add sp, sp, #32
 ; CHECK-NEXT:    ret
 ;
 ; NONEON-NOSVE-LABEL: masked_load_v32i8:
 ; NONEON-NOSVE:       // %bb.0:
 ; NONEON-NOSVE-NEXT:    str x29, [sp, #-16]! // 8-byte Folded Spill
-; NONEON-NOSVE-NEXT:    sub sp, sp, #2000
-; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 2016
+; NONEON-NOSVE-NEXT:    sub sp, sp, #2016
+; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 2032
 ; NONEON-NOSVE-NEXT:    .cfi_offset w29, -16
-; NONEON-NOSVE-NEXT:    ldr w8, [sp, #2096]
-; NONEON-NOSVE-NEXT:    ldr w9, [sp, #2104]
-; NONEON-NOSVE-NEXT:    sbfx w15, w7, #0, #1
-; NONEON-NOSVE-NEXT:    ldr w10, [sp, #2112]
-; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2088]
-; NONEON-NOSVE-NEXT:    ldr w12, [sp, #2120]
-; NONEON-NOSVE-NEXT:    sbfx w8, w8, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w9, w9, #0, #1
-; NONEON-NOSVE-NEXT:    ldr w13, [sp, #2136]
-; NONEON-NOSVE-NEXT:    sbfx w10, w10, #0, #1
-; NONEON-NOSVE-NEXT:    ldr w14, [sp, #2144]
-; NONEON-NOSVE-NEXT:    ldr w16, [sp, #2016]
-; NONEON-NOSVE-NEXT:    and w8, w8, #0x2
-; NONEON-NOSVE-NEXT:    and w9, w9, #0x4
-; NONEON-NOSVE-NEXT:    bfxil w8, w11, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w11, w12, #0, #1
-; NONEON-NOSVE-NEXT:    ldr w12, [sp, #2128]
-; NONEON-NOSVE-NEXT:    and w10, w10, #0x8
-; NONEON-NOSVE-NEXT:    sbfx w14, w14, #0, #1
+; NONEON-NOSVE-NEXT:    ldr w9, [sp, #2032]
+; NONEON-NOSVE-NEXT:    ldr w10, [sp, #2040]
+; NONEON-NOSVE-NEXT:    and w8, w1, #0x1
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2048]
+; NONEON-NOSVE-NEXT:    ldr w12, [sp, #2056]
+; NONEON-NOSVE-NEXT:    bfi w8, w2, #1, #1
+; NONEON-NOSVE-NEXT:    ubfiz w9, w9, #7, #1
+; NONEON-NOSVE-NEXT:    ubfiz w10, w10, #8, #1
+; NONEON-NOSVE-NEXT:    ldr w13, [sp, #2104]
+; NONEON-NOSVE-NEXT:    ubfiz w11, w11, #9, #1
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #10, #1
+; NONEON-NOSVE-NEXT:    ldr w14, [sp, #2072]
 ; NONEON-NOSVE-NEXT:    orr w9, w9, w10
-; NONEON-NOSVE-NEXT:    and w10, w11, #0x10
-; NONEON-NOSVE-NEXT:    sbfx w11, w12, #0, #1
-; NONEON-NOSVE-NEXT:    orr w9, w9, w10
-; NONEON-NOSVE-NEXT:    sbfx w10, w13, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w12, w4, #0, #1
-; NONEON-NOSVE-NEXT:    orr w8, w8, w9
-; NONEON-NOSVE-NEXT:    and w9, w11, #0x20
-; NONEON-NOSVE-NEXT:    sbfx w11, w3, #0, #1
-; NONEON-NOSVE-NEXT:    and w10, w10, #0x40
-; NONEON-NOSVE-NEXT:    sbfx w13, w5, #0, #1
-; NONEON-NOSVE-NEXT:    and w12, w12, #0x8
-; NONEON-NOSVE-NEXT:    orr w9, w9, w10
-; NONEON-NOSVE-NEXT:    sbfx w10, w2, #0, #1
-; NONEON-NOSVE-NEXT:    and w11, w11, #0x4
-; NONEON-NOSVE-NEXT:    orr w11, w11, w12
-; NONEON-NOSVE-NEXT:    and w12, w13, #0x10
-; NONEON-NOSVE-NEXT:    sbfx w13, w6, #0, #1
-; NONEON-NOSVE-NEXT:    and w10, w10, #0x2
-; NONEON-NOSVE-NEXT:    orr w11, w11, w12
-; NONEON-NOSVE-NEXT:    orr w8, w8, w9
-; NONEON-NOSVE-NEXT:    bfxil w10, w1, #0, #1
-; NONEON-NOSVE-NEXT:    and w12, w13, #0x20
-; NONEON-NOSVE-NEXT:    and w13, w15, #0x40
-; NONEON-NOSVE-NEXT:    sbfx w15, w16, #0, #1
-; NONEON-NOSVE-NEXT:    orr w9, w10, w11
-; NONEON-NOSVE-NEXT:    orr w10, w12, w13
-; NONEON-NOSVE-NEXT:    and w11, w14, #0xff80
-; NONEON-NOSVE-NEXT:    orr w9, w9, w10
-; NONEON-NOSVE-NEXT:    and w10, w15, #0xff80
-; NONEON-NOSVE-NEXT:    add w11, w8, w11
-; NONEON-NOSVE-NEXT:    add w8, w9, w10
+; NONEON-NOSVE-NEXT:    ldr w10, [sp, #2064]
+; NONEON-NOSVE-NEXT:    bfi w8, w3, #2, #1
+; NONEON-NOSVE-NEXT:    orr w9, w9, w11
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2112]
+; NONEON-NOSVE-NEXT:    ldr w15, [sp, #2176]
+; NONEON-NOSVE-NEXT:    orr w12, w9, w12
+; NONEON-NOSVE-NEXT:    and w9, w13, #0x1
+; NONEON-NOSVE-NEXT:    ubfiz w10, w10, #11, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #1, #1
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2120]
+; NONEON-NOSVE-NEXT:    ldr w13, [sp, #2080]
+; NONEON-NOSVE-NEXT:    orr w10, w12, w10
+; NONEON-NOSVE-NEXT:    ubfiz w12, w14, #12, #1
+; NONEON-NOSVE-NEXT:    ldr w14, [sp, #2168]
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #2, #1
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2128]
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #13, #1
+; NONEON-NOSVE-NEXT:    orr w10, w10, w12
+; NONEON-NOSVE-NEXT:    ubfiz w14, w14, #8, #1
+; NONEON-NOSVE-NEXT:    ldr w16, [sp, #2184]
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #3, #1
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2136]
+; NONEON-NOSVE-NEXT:    orr w10, w10, w13
+; NONEON-NOSVE-NEXT:    ldr w13, [sp, #2160]
+; NONEON-NOSVE-NEXT:    bfi w8, w4, #3, #1
+; NONEON-NOSVE-NEXT:    ldr w12, [sp, #2088]
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #4, #1
+; NONEON-NOSVE-NEXT:    ldr w11, [sp, #2144]
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #7, #1
+; NONEON-NOSVE-NEXT:    bfi w8, w5, #4, #1
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #14, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #5, #1
+; NONEON-NOSVE-NEXT:    ubfiz w11, w15, #9, #1
+; NONEON-NOSVE-NEXT:    ldr w15, [sp, #2192]
+; NONEON-NOSVE-NEXT:    orr w13, w13, w14
+; NONEON-NOSVE-NEXT:    ubfiz w14, w16, #10, #1
+; NONEON-NOSVE-NEXT:    ldr w16, [sp, #2200]
+; NONEON-NOSVE-NEXT:    orr w11, w13, w11
+; NONEON-NOSVE-NEXT:    ubfiz w13, w15, #11, #1
+; NONEON-NOSVE-NEXT:    ldr w15, [sp, #2208]
+; NONEON-NOSVE-NEXT:    orr w11, w11, w14
+; NONEON-NOSVE-NEXT:    ubfiz w14, w16, #12, #1
+; NONEON-NOSVE-NEXT:    ldr w16, [sp, #2216]
+; NONEON-NOSVE-NEXT:    bfi w8, w6, #5, #1
+; NONEON-NOSVE-NEXT:    orr w11, w11, w13
+; NONEON-NOSVE-NEXT:    ldr w13, [sp, #2152]
+; NONEON-NOSVE-NEXT:    ubfiz w15, w15, #13, #1
+; NONEON-NOSVE-NEXT:    orr w11, w11, w14
+; NONEON-NOSVE-NEXT:    ubfiz w14, w16, #14, #1
+; NONEON-NOSVE-NEXT:    ldr w16, [sp, #2224]
+; NONEON-NOSVE-NEXT:    bfi w8, w7, #6, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w13, #6, #1
+; NONEON-NOSVE-NEXT:    orr w11, w11, w15
+; NONEON-NOSVE-NEXT:    orr w10, w10, w12
+; NONEON-NOSVE-NEXT:    ldr w12, [sp, #2096]
+; NONEON-NOSVE-NEXT:    orr w11, w11, w14
+; NONEON-NOSVE-NEXT:    lsl w13, w16, #31
+; NONEON-NOSVE-NEXT:    orr w8, w8, w10
+; NONEON-NOSVE-NEXT:    orr w9, w9, w11
+; NONEON-NOSVE-NEXT:    orr w10, w8, w12, lsl #15
+; NONEON-NOSVE-NEXT:    orr w8, w13, w9, lsl #16
 ; NONEON-NOSVE-NEXT:    adrp x9, .LCPI3_0
-; NONEON-NOSVE-NEXT:    bfi w8, w11, #16, #16
 ; NONEON-NOSVE-NEXT:    ldr q1, [x9, :lo12:.LCPI3_0]
 ; NONEON-NOSVE-NEXT:    add x9, sp, #1744
+; NONEON-NOSVE-NEXT:    bfxil w8, w10, #0, #16
 ; NONEON-NOSVE-NEXT:    tbz w8, #0, .LBB3_2
 ; NONEON-NOSVE-NEXT:  // %bb.1: // %cond.load
 ; NONEON-NOSVE-NEXT:    ldrb w10, [x0], #1
@@ -1620,7 +1706,7 @@ define <32 x i8> @masked_load_v32i8(ptr %src, <32 x i1> %mask) {
 ; NONEON-NOSVE-NEXT:    strb w8, [sp, #47]
 ; NONEON-NOSVE-NEXT:    ldr q1, [sp, #32]
 ; NONEON-NOSVE-NEXT:  .LBB3_35: // %else122
-; NONEON-NOSVE-NEXT:    add sp, sp, #2000
+; NONEON-NOSVE-NEXT:    add sp, sp, #2016
 ; NONEON-NOSVE-NEXT:    ldr x29, [sp], #16 // 8-byte Folded Reload
 ; NONEON-NOSVE-NEXT:    ret
 ; NONEON-NOSVE-NEXT:  .LBB3_36: // %cond.load5
@@ -2667,18 +2753,68 @@ define <8 x half> @masked_load_v8f16(ptr %src, <8 x i1> %mask) {
 define <16 x half> @masked_load_v16f16(ptr %src, <16 x i1> %mask) {
 ; CHECK-LABEL: masked_load_v16f16:
 ; CHECK:       // %bb.0:
+; CHECK-NEXT:    sub sp, sp, #16
+; CHECK-NEXT:    .cfi_def_cfa_offset 16
 ; CHECK-NEXT:    // kill: def $q0 killed $q0 def $z0
-; CHECK-NEXT:    adrp x8, .LCPI7_0
-; CHECK-NEXT:    ptrue p0.b, vl16
-; CHECK-NEXT:    lsl z0.b, z0.b, #7
-; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI7_0]
-; CHECK-NEXT:    asr z0.b, z0.b, #7
-; CHECK-NEXT:    and z0.d, z0.d, z1.d
+; CHECK-NEXT:    mov z3.b, z0.b[1]
+; CHECK-NEXT:    mov z4.b, z0.b[2]
+; CHECK-NEXT:    fmov w8, s0
+; CHECK-NEXT:    mov z16.b, z0.b[7]
+; CHECK-NEXT:    mov z17.b, z0.b[8]
+; CHECK-NEXT:    mov z5.b, z0.b[3]
+; CHECK-NEXT:    mov z18.b, z0.b[9]
+; CHECK-NEXT:    mov z19.b, z0.b[10]
+; CHECK-NEXT:    mov z6.b, z0.b[4]
+; CHECK-NEXT:    and w8, w8, #0x1
+; CHECK-NEXT:    fmov w9, s3
+; CHECK-NEXT:    fmov w10, s4
+; CHECK-NEXT:    mov z20.b, z0.b[11]
+; CHECK-NEXT:    fmov w13, s16
+; CHECK-NEXT:    fmov w14, s17
+; CHECK-NEXT:    fmov w11, s5
+; CHECK-NEXT:    fmov w15, s18
+; CHECK-NEXT:    mov z7.b, z0.b[5]
+; CHECK-NEXT:    bfi w8, w9, #1, #1
+; CHECK-NEXT:    mov z21.b, z0.b[12]
+; CHECK-NEXT:    fmov w16, s19
+; CHECK-NEXT:    ubfiz w13, w13, #7, #1
+; CHECK-NEXT:    ubfiz w14, w14, #8, #1
+; CHECK-NEXT:    mov z22.b, z0.b[13]
+; CHECK-NEXT:    bfi w8, w10, #2, #1
+; CHECK-NEXT:    fmov w12, s6
+; CHECK-NEXT:    fmov w10, s20
+; CHECK-NEXT:    orr w13, w13, w14
+; CHECK-NEXT:    ubfiz w14, w16, #10, #1
+; CHECK-NEXT:    mov z23.b, z0.b[14]
+; CHECK-NEXT:    bfi w8, w11, #3, #1
+; CHECK-NEXT:    ubfiz w11, w15, #9, #1
+; CHECK-NEXT:    mov z2.b, z0.b[6]
+; CHECK-NEXT:    ubfiz w10, w10, #11, #1
+; CHECK-NEXT:    fmov w9, s7
+; CHECK-NEXT:    fmov w17, s21
+; CHECK-NEXT:    bfi w8, w12, #4, #1
+; CHECK-NEXT:    orr w11, w13, w11
+; CHECK-NEXT:    fmov w15, s22
+; CHECK-NEXT:    fmov w12, s23
+; CHECK-NEXT:    orr w11, w11, w14
+; CHECK-NEXT:    mov z24.b, z0.b[15]
+; CHECK-NEXT:    ubfiz w13, w17, #12, #1
+; CHECK-NEXT:    bfi w8, w9, #5, #1
+; CHECK-NEXT:    orr w9, w11, w10
+; CHECK-NEXT:    fmov w11, s2
+; CHECK-NEXT:    ubfiz w10, w15, #13, #1
 ; CHECK-NEXT:    mov z1.h, #0 // =0x0
-; CHECK-NEXT:    uaddv d2, p0, z0.b
+; CHECK-NEXT:    orr w9, w9, w13
+; CHECK-NEXT:    ubfiz w12, w12, #14, #1
 ; CHECK-NEXT:    mov z0.h, #0 // =0x0
-; CHECK-NEXT:    fmov w8, s2
-; CHECK-NEXT:    tbz w8, #0, .LBB7_16
+; CHECK-NEXT:    orr w9, w9, w10
+; CHECK-NEXT:    bfi w8, w11, #6, #1
+; CHECK-NEXT:    orr w9, w9, w12
+; CHECK-NEXT:    orr w8, w8, w9
+; CHECK-NEXT:    fmov w9, s24
+; CHECK-NEXT:    orr w9, w8, w9, lsl #15
+; CHECK-NEXT:    and w8, w9, #0xffff
+; CHECK-NEXT:    tbz w9, #0, .LBB7_16
 ; CHECK-NEXT:  // %bb.1: // %cond.load
 ; CHECK-NEXT:    fmov h0, wzr
 ; CHECK-NEXT:    ldr h1, [x0], #2
@@ -2853,48 +2989,61 @@ define <16 x half> @masked_load_v16f16(ptr %src, <16 x i1> %mask) {
 ; CHECK-NEXT:  .LBB7_32: // %else58
 ; CHECK-NEXT:    // kill: def $q0 killed $q0 killed $z0
 ; CHECK-NEXT:    // kill: def $q1 killed $q1 killed $z1
+; CHECK-NEXT:    add sp, sp, #16
 ; CHECK-NEXT:    ret
 ;
 ; NONEON-NOSVE-LABEL: masked_load_v16f16:
 ; NONEON-NOSVE:       // %bb.0:
 ; NONEON-NOSVE-NEXT:    str x29, [sp, #-16]! // 8-byte Folded Spill
-; NONEON-NOSVE-NEXT:    sub sp, sp, #992
-; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 1008
+; NONEON-NOSVE-NEXT:    sub sp, sp, #1008
+; NONEON-NOSVE-NEXT:    .cfi_def_cfa_offset 1024
 ; NONEON-NOSVE-NEXT:    .cfi_offset w29, -16
 ; NONEON-NOSVE-NEXT:    str q0, [sp, #976]
-; NONEON-NOSVE-NEXT:    adrp x9, .LCPI7_0
-; NONEON-NOSVE-NEXT:    ldrb w8, [sp, #978]
+; NONEON-NOSVE-NEXT:    adrp x8, .LCPI7_0
+; NONEON-NOSVE-NEXT:    ldrb w9, [sp, #976]
+; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #977]
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #978]
+; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #983]
+; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #984]
+; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #985]
+; NONEON-NOSVE-NEXT:    and w9, w9, #0x1
+; NONEON-NOSVE-NEXT:    ldr q1, [x8, :lo12:.LCPI7_0]
+; NONEON-NOSVE-NEXT:    bfi w9, w10, #1, #1
 ; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #979]
-; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #977]
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #7, #1
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #8, #1
+; NONEON-NOSVE-NEXT:    ubfiz w14, w14, #9, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #2, #1
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #986]
+; NONEON-NOSVE-NEXT:    orr w12, w12, w13
 ; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #980]
+; NONEON-NOSVE-NEXT:    bfi w9, w10, #3, #1
+; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #987]
+; NONEON-NOSVE-NEXT:    ubfiz w11, w11, #10, #1
+; NONEON-NOSVE-NEXT:    orr w12, w12, w14
 ; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #981]
-; NONEON-NOSVE-NEXT:    ldrb w15, [sp, #982]
-; NONEON-NOSVE-NEXT:    sbfx w8, w8, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w10, w10, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w11, w11, #0, #1
-; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #976]
-; NONEON-NOSVE-NEXT:    sbfx w13, w13, #0, #1
-; NONEON-NOSVE-NEXT:    sbfx w14, w14, #0, #1
-; NONEON-NOSVE-NEXT:    and w8, w8, #0x4
-; NONEON-NOSVE-NEXT:    and w10, w10, #0x8
-; NONEON-NOSVE-NEXT:    sbfx w15, w15, #0, #1
-; NONEON-NOSVE-NEXT:    orr w8, w8, w10
-; NONEON-NOSVE-NEXT:    ldrb w10, [sp, #983]
-; NONEON-NOSVE-NEXT:    and w11, w11, #0x2
-; NONEON-NOSVE-NEXT:    and w13, w13, #0x10
-; NONEON-NOSVE-NEXT:    bfxil w11, w12, #0, #1
-; NONEON-NOSVE-NEXT:    and w12, w14, #0x20
-; NONEON-NOSVE-NEXT:    orr w8, w8, w13
-; NONEON-NOSVE-NEXT:    and w13, w15, #0x40
-; NONEON-NOSVE-NEXT:    sbfx w10, w10, #0, #1
-; NONEON-NOSVE-NEXT:    orr w8, w11, w8
-; NONEON-NOSVE-NEXT:    orr w11, w12, w13
-; NONEON-NOSVE-NEXT:    ldr q1, [x9, :lo12:.LCPI7_0]
-; NONEON-NOSVE-NEXT:    orr w8, w8, w11
-; NONEON-NOSVE-NEXT:    and w10, w10, #0xffffff80
+; NONEON-NOSVE-NEXT:    bfi w9, w13, #4, #1
+; NONEON-NOSVE-NEXT:    ldrb w13, [sp, #988]
+; NONEON-NOSVE-NEXT:    orr w11, w12, w11
+; NONEON-NOSVE-NEXT:    ldrb w12, [sp, #989]
+; NONEON-NOSVE-NEXT:    ubfiz w10, w10, #11, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w14, #5, #1
+; NONEON-NOSVE-NEXT:    ldrb w14, [sp, #990]
+; NONEON-NOSVE-NEXT:    ubfiz w13, w13, #12, #1
+; NONEON-NOSVE-NEXT:    orr w10, w11, w10
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #982]
+; NONEON-NOSVE-NEXT:    ubfiz w12, w12, #13, #1
+; NONEON-NOSVE-NEXT:    orr w10, w10, w13
+; NONEON-NOSVE-NEXT:    ubfiz w13, w14, #14, #1
+; NONEON-NOSVE-NEXT:    bfi w9, w11, #6, #1
+; NONEON-NOSVE-NEXT:    orr w10, w10, w12
+; NONEON-NOSVE-NEXT:    ldrb w11, [sp, #991]
+; NONEON-NOSVE-NEXT:    orr w10, w10, w13
+; NONEON-NOSVE-NEXT:    orr w9, w9, w10
+; NONEON-NOSVE-NEXT:    orr w10, w9, w11, lsl #15
 ; NONEON-NOSVE-NEXT:    add x9, sp, #720
-; NONEON-NOSVE-NEXT:    add w8, w8, w10
-; NONEON-NOSVE-NEXT:    tbz w8, #0, .LBB7_2
+; NONEON-NOSVE-NEXT:    and w8, w10, #0xffff
+; NONEON-NOSVE-NEXT:    tbz w10, #0, .LBB7_2
 ; NONEON-NOSVE-NEXT:  // %bb.1: // %cond.load
 ; NONEON-NOSVE-NEXT:    fmov s0, wzr
 ; NONEON-NOSVE-NEXT:    ldr h2, [x0], #2
@@ -2969,7 +3118,7 @@ define <16 x half> @masked_load_v16f16(ptr %src, <16 x i1> %mask) {
 ; NONEON-NOSVE-NEXT:    str h1, [sp, #46]
 ; NONEON-NOSVE-NEXT:    ldr q1, [sp, #32]
 ; NONEON-NOSVE-NEXT:  .LBB7_19: // %else58
-; NONEON-NOSVE-NEXT:    add sp, sp, #992
+; NONEON-NOSVE-NEXT:    add sp, sp, #1008
 ; NONEON-NOSVE-NEXT:    ldr x29, [sp], #16 // 8-byte Folded Reload
 ; NONEON-NOSVE-NEXT:    ret
 ; NONEON-NOSVE-NEXT:  .LBB7_20: // %cond.load5
